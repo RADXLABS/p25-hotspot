@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - P25 Hotspot{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Dashboard</h2>
+    <div>
+        {% if status.active %}
+        <button class="btn btn-warning btn-sm" onclick="restartService()">Restart</button>
+        <button class="btn btn-danger btn-sm" onclick="stopService()">Stop</button>
+        {% else %}
+        <button class="btn btn-success btn-sm" onclick="startService()">Start</button>
+        {% endif %}
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">{% if status.active %}✓{% else %}✗{% endif %}</div>
+        <div class="stat-info">
+            <h3 id="status-text">{{ status.status }}</h3>
+            <p>Service Status</p>
+        </div>
+    </div>
+
+    {% if config %}
+    <div class="stat-card">
+        <div class="stat-icon">📻</div>
+        <div class="stat-info">
+            <h3>{{ config.reflector.radio_id }}</h3>
+            <p>Radio ID</p>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon">🎙️</div>
+        <div class="stat-info">
+            <h3>{{ config.reflector.callsign }}</h3>
+            <p>Callsign</p>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon">🌐</div>
+        <div class="stat-info">
+            <h3>{{ config.reflector.address }}</h3>
+            <p>Reflector</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if config %}
+<div class="section">
+    <h3>Configuration Summary</h3>
+    <table class="data-table">
+        <tbody>
+            <tr>
+                <td><strong>Reflector Address</strong></td>
+                <td>{{ config.reflector.address }}:{{ config.reflector.port }}</td>
+            </tr>
+            <tr>
+                <td><strong>Radio ID</strong></td>
+                <td>{{ config.reflector.radio_id }} ({{ config.reflector.callsign }})</td>
+            </tr>
+            <tr>
+                <td><strong>Modem Port</strong></td>
+                <td>{{ config.modem.port }}</td>
+            </tr>
+            <tr>
+                <td><strong>RX Frequency</strong></td>
+                <td>{{ "%.6f"|format(config.modem.rx_frequency / 1000000.0) }} MHz</td>
+            </tr>
+            <tr>
+                <td><strong>TX Frequency</strong></td>
+                <td>{{ "%.6f"|format(config.modem.tx_frequency / 1000000.0) }} MHz</td>
+            </tr>
+            <tr>
+                <td><strong>NAC</strong></td>
+                <td>0x{{ "%X"|format(config.p25.nac) }}</td>
+            </tr>
+            <tr>
+                <td><strong>Trunking</strong></td>
+                <td>{% if config.p25.trunking %}Enabled{% else %}Disabled{% endif %}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<div class="section">
+    <h3>Recent Logs</h3>
+    <div id="recent-logs" style="font-family: monospace; font-size: 0.8rem; white-space: pre-wrap; max-height: 400px; overflow-y: auto; background: var(--bg-darker); padding: 1rem; border: 1px solid var(--border-bright);">
+        Loading...
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updateStatus() {
+    fetch('/api/status')
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('status-text').textContent = data.service.status;
+        });
+}
+
+function updateLogs() {
+    fetch('/api/logs?lines=20')
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('recent-logs').textContent = data.logs;
+        });
+}
+
+function restartService() {
+    if (confirm('Restart hotspot service?')) {
+        fetch('/api/service/restart', {method: 'POST'})
+            .then(r => r.json())
+            .then(data => {
+                alert(data.message);
+                setTimeout(() => location.reload(), 2000);
+            });
+    }
+}
+
+function stopService() {
+    if (confirm('Stop hotspot service?')) {
+        fetch('/api/service/stop', {method: 'POST'})
+            .then(r => r.json())
+            .then(data => {
+                alert(data.message);
+                setTimeout(() => location.reload(), 1000);
+            });
+    }
+}
+
+function startService() {
+    fetch('/api/service/start', {method: 'POST'})
+        .then(r => r.json())
+        .then(data => {
+            alert(data.message);
+            setTimeout(() => location.reload(), 2000);
+        });
+}
+
+// Auto-refresh every 5 seconds
+setInterval(updateStatus, 5000);
+setInterval(updateLogs, 5000);
+
+// Initial load
+updateLogs();
+</script>
+{% endblock %}

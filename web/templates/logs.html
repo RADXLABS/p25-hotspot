@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Logs - P25 Hotspot{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>System Logs</h2>
+    <div>
+        <select id="log-lines" onchange="updateLogs()">
+            <option value="50">Last 50 lines</option>
+            <option value="100" selected>Last 100 lines</option>
+            <option value="200">Last 200 lines</option>
+            <option value="500">Last 500 lines</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="updateLogs()">Refresh</button>
+    </div>
+</div>
+
+<div class="section">
+    <div id="logs" style="font-family: monospace; font-size: 0.75rem; white-space: pre-wrap; background: var(--bg-darker); padding: 1rem; border: 1px solid var(--border-bright); max-height: 80vh; overflow-y: auto;">
+{{ logs }}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updateLogs() {
+    const lines = document.getElementById('log-lines').value;
+    fetch('/api/logs?lines=' + lines)
+        .then(r => r.json())
+        .then(data => {
+            const logsDiv = document.getElementById('logs');
+            logsDiv.textContent = data.logs;
+            // Auto-scroll to bottom
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        });
+}
+
+// Auto-refresh every 5 seconds
+setInterval(updateLogs, 5000);
+</script>
+{% endblock %}

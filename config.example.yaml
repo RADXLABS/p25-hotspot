@@ -1,0 +1,37 @@
+# P25 Hotspot Configuration
+
+# Reflector connection settings
+reflector:
+  address: "199.201.221.8"        # Your P25 reflector server IP
+  port: 41000                      # Reflector UDP port
+  radio_id: 123456                 # Your radio ID (DMR ID format)
+  password: "your_password_here"   # Password set in reflector database
+  callsign: "N0CALL"               # Your callsign
+  keepalive_interval: 5            # Seconds between keepalive packets
+
+# MMDVM modem settings
+modem:
+  port: "/dev/ttyAMA0"             # Serial port (ttyAMA0 on RPi, ttyUSB0 for USB)
+  baud: 115200                     # Baud rate (115200 standard for MMDVM)
+  rx_frequency: 449000000          # RX frequency in Hz
+  tx_frequency: 444000000          # TX frequency in Hz
+  tx_power: 50                     # TX power level (0-100%)
+  rx_offset: 0                     # RX offset in Hz
+  tx_offset: 0                     # TX offset in Hz
+  rf_level: 100                    # RF level (0-100%)
+  rx_dc_offset: 0                  # RX DC offset
+  tx_dc_offset: 0                  # TX DC offset
+
+# P25 protocol settings
+p25:
+  nac: 0x293                       # Network Access Code (must match reflector)
+  enabled: true                    # Enable P25 mode
+  trunking: true                   # Enable trunking (vs conventional)
+
+# Logging settings
+logging:
+  level: "INFO"                    # DEBUG, INFO, WARN, ERROR
+  file: "/var/log/p25-hotspot.log" # Log file path
+  console: true                    # Also log to console
+  max_size_mb: 10                  # Max log file size before rotation
+  max_files: 5                     # Number of rotated logs to keep

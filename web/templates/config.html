@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}Configuration - P25 Hotspot{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Configuration</h2>
+    <button class="btn btn-success" onclick="saveConfig()">Save & Restart</button>
+</div>
+
+<div id="message" style="display: none; padding: 1rem; margin-bottom: 1rem; border: 1px solid; border-radius: 0;"></div>
+
+<form id="config-form" onsubmit="event.preventDefault(); saveConfig();">
+    <!-- Reflector Settings -->
+    <div class="section">
+        <h3>Reflector Settings</h3>
+
+        <div class="form-group">
+            <label for="reflector_address">Reflector Address</label>
+            <input type="text" id="reflector_address" value="{{ config.reflector.address }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="reflector_port">Reflector Port</label>
+            <input type="number" id="reflector_port" value="{{ config.reflector.port }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="radio_id">Radio ID</label>
+            <input type="number" id="radio_id" value="{{ config.reflector.radio_id }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" value="{{ config.reflector.password }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="callsign">Callsign</label>
+            <input type="text" id="callsign" value="{{ config.reflector.callsign }}" required style="text-transform: uppercase;">
+        </div>
+
+        <div class="form-group">
+            <label for="keepalive_interval">Keepalive Interval (seconds)</label>
+            <input type="number" id="keepalive_interval" value="{{ config.reflector.keepalive_interval }}" required>
+        </div>
+    </div>
+
+    <!-- Modem Settings -->
+    <div class="section">
+        <h3>Modem Settings</h3>
+
+        <div class="form-group">
+            <label for="modem_port">Serial Port</label>
+            <input type="text" id="modem_port" value="{{ config.modem.port }}" required>
+            <small style="color: var(--text-dim);">Common: /dev/ttyAMA0 (GPIO), /dev/ttyUSB0 (USB)</small>
+        </div>
+
+        <div class="form-group">
+            <label for="baud">Baud Rate</label>
+            <select id="baud">
+                <option value="9600" {% if config.modem.baud == 9600 %}selected{% endif %}>9600</option>
+                <option value="19200" {% if config.modem.baud == 19200 %}selected{% endif %}>19200</option>
+                <option value="38400" {% if config.modem.baud == 38400 %}selected{% endif %}>38400</option>
+                <option value="57600" {% if config.modem.baud == 57600 %}selected{% endif %}>57600</option>
+                <option value="115200" {% if config.modem.baud == 115200 %}selected{% endif %}>115200</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="rx_frequency">RX Frequency (MHz)</label>
+            <input type="number" step="0.000001" id="rx_frequency" value="{{ config.modem.rx_frequency / 1000000.0 }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="tx_frequency">TX Frequency (MHz)</label>
+            <input type="number" step="0.000001" id="tx_frequency" value="{{ config.modem.tx_frequency / 1000000.0 }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="tx_power">TX Power (%)</label>
+            <input type="range" id="tx_power" min="0" max="100" value="{{ config.modem.tx_power }}" oninput="document.getElementById('tx_power_val').textContent=this.value">
+            <span id="tx_power_val">{{ config.modem.tx_power }}</span>%
+        </div>
+
+        <div class="form-group">
+            <label for="rf_level">RF Level (%)</label>
+            <input type="range" id="rf_level" min="0" max="100" value="{{ config.modem.rf_level }}" oninput="document.getElementById('rf_level_val').textContent=this.value">
+            <span id="rf_level_val">{{ config.modem.rf_level }}</span>%
+        </div>
+    </div>
+
+    <!-- P25 Settings -->
+    <div class="section">
+        <h3>P25 Settings</h3>
+
+        <div class="form-group">
+            <label for="nac">NAC (Network Access Code)</label>
+            <input type="text" id="nac" value="0x{{ '%X'|format(config.p25.nac) }}" required pattern="0x[0-9A-Fa-f]{1,3}">
+            <small style="color: var(--text-dim);">Hex format (e.g., 0x293)</small>
+        </div>
+
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="p25_enabled" {% if config.p25.enabled %}checked{% endif %}>
+                P25 Enabled
+            </label>
+        </div>
+
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="trunking" {% if config.p25.trunking %}checked{% endif %}>
+                Trunking Enabled
+            </label>
+        </div>
+    </div>
+
+    <!-- Logging Settings -->
+    <div class="section">
+        <h3>Logging Settings</h3>
+
+        <div class="form-group">
+            <label for="log_level">Log Level</label>
+            <select id="log_level">
+                <option value="DEBUG" {% if config.logging.level == 'DEBUG' %}selected{% endif %}>DEBUG</option>
+                <option value="INFO" {% if config.logging.level == 'INFO' %}selected{% endif %}>INFO</option>
+                <option value="WARN" {% if config.logging.level == 'WARN' %}selected{% endif %}>WARN</option>
+                <option value="ERROR" {% if config.logging.level == 'ERROR' %}selected{% endif %}>ERROR</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="log_file">Log File Path</label>
+            <input type="text" id="log_file" value="{{ config.logging.file }}">
+        </div>
+
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="console" {% if config.logging.console %}checked{% endif %}>
+                Console Logging
+            </label>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="location.href='/'">Cancel</button>
+        <button type="submit" class="btn btn-success">Save & Restart</button>
+    </div>
+</form>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function saveConfig() {
+    // Build config object from form
+    const config = {
+        reflector: {
+            address: document.getElementById('reflector_address').value,
+            port: parseInt(document.getElementById('reflector_port').value),
+            radio_id: parseInt(document.getElementById('radio_id').value),
+            password: document.getElementById('password').value,
+            callsign: document.getElementById('callsign').value.toUpperCase(),
+            keepalive_interval: parseInt(document.getElementById('keepalive_interval').value)
+        },
+        modem: {
+            port: document.getElementById('modem_port').value,
+            baud: parseInt(document.getElementById('baud').value),
+            rx_frequency: Math.round(parseFloat(document.getElementById('rx_frequency').value) * 1000000),
+            tx_frequency: Math.round(parseFloat(document.getElementById('tx_frequency').value) * 1000000),
+            tx_power: parseInt(document.getElementById('tx_power').value),
+            rx_offset: 0,
+            tx_offset: 0,
+            rf_level: parseInt(document.getElementById('rf_level').value),
+            rx_dc_offset: 0,
+            tx_dc_offset: 0
+        },
+        p25: {
+            nac: parseInt(document.getElementById('nac').value, 16),
+            enabled: document.getElementById('p25_enabled').checked,
+            trunking: document.getElementById('trunking').checked
+        },
+        logging: {
+            level: document.getElementById('log_level').value,
+            file: document.getElementById('log_file').value,
+            console: document.getElementById('console').checked,
+            max_size_mb: 10,
+            max_files: 5
+        }
+    };
+
+    // Show loading message
+    showMessage('Saving configuration and restarting service...', 'info');
+
+    // Save config
+    fetch('/api/config', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(config)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showMessage('✓ Configuration saved! Service is restarting...', 'success');
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 3000);
+        } else {
+            showMessage('✗ Failed to save configuration: ' + data.message, 'error');
+        }
+    })
+    .catch(err => {
+        showMessage('✗ Error: ' + err, 'error');
+    });
+}
+
+function showMessage(text, type) {
+    const msg = document.getElementById('message');
+    msg.textContent = text;
+    msg.style.display = 'block';
+
+    if (type === 'success') {
+        msg.style.borderColor = 'var(--accent-green)';
+        msg.style.color = 'var(--accent-green)';
+        msg.style.background = 'rgba(0, 255, 136, 0.1)';
+    } else if (type === 'error') {
+        msg.style.borderColor = 'var(--accent-red)';
+        msg.style.color = 'var(--accent-red)';
+        msg.style.background = 'rgba(255, 107, 107, 0.1)';
+    } else {
+        msg.style.borderColor = 'var(--accent-amber)';
+        msg.style.color = 'var(--accent-amber)';
+        msg.style.background = 'rgba(255, 180, 84, 0.1)';
+    }
+}
+</script>
+{% endblock %}

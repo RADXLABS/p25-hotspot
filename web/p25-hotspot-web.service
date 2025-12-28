@@ -1,0 +1,17 @@
+[Unit]
+Description=P25 Hotspot Web Interface
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/p25-hotspot/web
+ExecStart=/usr/bin/python3 /opt/p25-hotspot/web/app.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

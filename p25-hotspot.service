@@ -1,0 +1,21 @@
+[Unit]
+Description=P25 Hotspot Service
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/p25-hotspot
+ExecStart=/usr/local/bin/p25-hotspot /etc/p25-hotspot.yaml
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
