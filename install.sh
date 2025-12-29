@@ -111,7 +111,7 @@ fi
 
 if [ ! -d "$INSTALL_DIR" ]; then
     print_info "Cloning repository..."
-    git clone https://github.com/YOUR_USERNAME/p25-hotspot.git "$INSTALL_DIR"
+    git clone https://github.com/RADXLABS/p25-hotspot.git "$INSTALL_DIR"
 fi
 
 cd "$INSTALL_DIR"
