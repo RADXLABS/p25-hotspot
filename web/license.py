@@ -123,8 +123,8 @@ def get_reflector_address():
             port = config['reflector'].get('port', 41000)
             return f"http://{address}:5000"  # Web interface port
     except Exception:
-        # Default fallback to HTTPS domain
-        return "https://trunking.radxrf.com"
+        # Default fallback to API subdomain (no Cloudflare Access)
+        return "https://api.radxrf.com"
 
 
 def activate_license(license_key):
