@@ -118,13 +118,11 @@ def get_reflector_address():
             # Check if there's a web_url configured (for HTTPS domains)
             if 'reflector' in config and 'web_url' in config['reflector']:
                 return config['reflector']['web_url']
-            # Otherwise use IP:port format
-            address = config['reflector']['address']
-            port = config['reflector'].get('port', 41000)
-            return f"http://{address}:5000"  # Web interface port
     except Exception:
-        # Default fallback to API subdomain (no Cloudflare Access)
-        return "https://api.radxrf.com"
+        pass
+
+    # Always use the API subdomain for licensing (no Cloudflare Access)
+    return "https://api.radxrf.com"
 
 
 def activate_license(license_key):
