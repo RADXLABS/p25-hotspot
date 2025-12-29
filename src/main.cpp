@@ -63,6 +63,21 @@ int main(int argc, char* argv[]) {
     LOG_INFO("P25 Hotspot Starting");
     LOG_INFO("============================================================");
 
+    // CHECK LICENSE BEFORE DOING ANYTHING
+    LOG_INFO("Checking license status...");
+    int licenseCheck = system("python3 /opt/p25-hotspot/web/license.py validate >/dev/null 2>&1");
+    if (licenseCheck != 0) {
+        LOG_ERROR("============================================================");
+        LOG_ERROR("LICENSE REQUIRED");
+        LOG_ERROR("============================================================");
+        LOG_ERROR("This hotspot is not licensed or license validation failed.");
+        LOG_ERROR("Please activate your license at the web interface.");
+        LOG_ERROR("Hotspot will NOT start without a valid license.");
+        LOG_ERROR("============================================================");
+        return 1;
+    }
+    LOG_INFO("✓ License validated successfully");
+
     // Register signal handlers
     signal(SIGINT, signalHandler);
     signal(SIGTERM, signalHandler);
