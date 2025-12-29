@@ -1,0 +1,26 @@
+[Unit]
+Description=P25 Hotspot License Validator
+After=network.target p25-hotspot.service
+Wants=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/p25-hotspot
+ExecStart=/usr/bin/python3 /opt/p25-hotspot/license-validator.py
+Restart=always
+RestartSec=10
+
+# Ensure validator starts after hotspot service
+After=p25-hotspot.service
+
+# If validator stops, stop the hotspot too (for safety)
+BindsTo=p25-hotspot.service
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=p25-license-validator
+
+[Install]
+WantedBy=multi-user.target

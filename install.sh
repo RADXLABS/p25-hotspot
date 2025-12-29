@@ -88,7 +88,8 @@ apt install -y \
     libyaml-cpp-dev \
     python3 \
     python3-flask \
-    python3-yaml
+    python3-yaml \
+    python3-requests
 
 print_success "Dependencies installed"
 
@@ -153,13 +154,21 @@ fi
 # Install web interface
 print_info "Installing web interface..."
 
-# Python dependencies (Flask, PyYAML) already installed via apt
+# Python dependencies (Flask, PyYAML, Requests) already installed via apt
 
 # Install web service
 cp "$INSTALL_DIR/web/p25-hotspot-web.service" /etc/systemd/system/
 systemctl daemon-reload
 
 print_success "Web interface installed"
+
+# Install license validator service
+print_info "Installing license validator..."
+cp "$INSTALL_DIR/p25-license-validator.service" /etc/systemd/system/
+chmod +x "$INSTALL_DIR/license-validator.py"
+systemctl daemon-reload
+
+print_success "License validator installed"
 
 # Enable GPIO UART if on Raspberry Pi
 if grep -q "Raspberry Pi" /proc/cpuinfo 2>/dev/null; then
@@ -316,26 +325,24 @@ if [[ ! $REPLY =~ ^[Nn]$ ]]; then
     print_info "Enabling services..."
     systemctl enable p25-hotspot
     systemctl enable p25-hotspot-web
+    systemctl enable p25-license-validator
 
     print_info "Starting services..."
-    systemctl start p25-hotspot
     systemctl start p25-hotspot-web
+    # Note: Don't start p25-hotspot or validator until license is activated
+    print_warning "Hotspot service will start after license activation"
 
     sleep 2
 
     # Check status
-    if systemctl is-active --quiet p25-hotspot; then
-        print_success "P25 Hotspot service is running"
-    else
-        print_error "P25 Hotspot service failed to start"
-        print_info "Check logs: journalctl -u p25-hotspot -n 50"
-    fi
-
     if systemctl is-active --quiet p25-hotspot-web; then
         print_success "Web interface is running"
     else
-        print_warning "Web interface failed to start (not critical)"
+        print_warning "Web interface failed to start"
+        print_info "Check logs: journalctl -u p25-hotspot-web -n 50"
     fi
+
+    print_warning "Hotspot and validator services will start after license activation"
 fi
 
 # Final instructions
@@ -346,24 +353,32 @@ echo -e "${GREEN}============================================================${N
 echo ""
 echo "Next steps:"
 echo ""
-echo "1. Web Interface:"
+echo -e "${YELLOW}⚠ IMPORTANT: LICENSE ACTIVATION REQUIRED${NC}"
+echo ""
+echo "1. Open Web Interface:"
 echo "   http://$(hostname -I | awk '{print $1}'):8080"
 echo "   or"
 echo "   http://$(hostname).local:8080"
 echo ""
-echo "2. Check Status:"
+echo "2. Activate License:"
+echo "   - You will see a license activation screen"
+echo "   - Provide your MAC address to your administrator"
+echo "   - Administrator will generate a license key for you"
+echo "   - Enter the license key in the web interface"
+echo "   - Hotspot services will start after activation"
+echo ""
+echo "3. After Activation:"
+echo "   - Dashboard will be accessible"
+echo "   - P25 hotspot service will be running"
+echo "   - License validator will monitor every 60 seconds"
+echo ""
+echo "4. Check Status:"
 echo "   sudo systemctl status p25-hotspot"
-echo "   sudo systemctl status p25-hotspot-web"
+echo "   sudo systemctl status p25-license-validator"
 echo ""
-echo "3. View Logs:"
+echo "5. View Logs:"
 echo "   sudo journalctl -u p25-hotspot -f"
-echo ""
-echo "4. Edit Configuration:"
-echo "   sudo nano $CONFIG_FILE"
-echo "   (or use web interface)"
-echo ""
-echo "5. Restart After Changes:"
-echo "   sudo systemctl restart p25-hotspot"
+echo "   sudo journalctl -u p25-license-validator -f"
 echo ""
 
 if grep -q "^enable_uart=1" /boot/config.txt 2>/dev/null || \

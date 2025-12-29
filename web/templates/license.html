@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>License Activation - P25 Hotspot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .license-container {
+            max-width: 600px;
+            width: 100%;
+            background: var(--bg-darker);
+            border: 2px solid var(--border-bright);
+            padding: 2rem;
+        }
+
+        .license-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-bright);
+        }
+
+        .license-header h1 {
+            color: var(--accent-red);
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .warning-box {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid var(--accent-red);
+            padding: 1rem;
+            margin-bottom: 2rem;
+            color: var(--accent-red);
+        }
+
+        .info-box {
+            background: rgba(255, 180, 84, 0.1);
+            border: 1px solid var(--accent-amber);
+            padding: 1rem;
+            margin-bottom: 2rem;
+            color: var(--accent-amber);
+        }
+
+        .mac-display {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-bright);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            text-align: center;
+        }
+
+        .mac-label {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .mac-value {
+            color: var(--accent-green);
+            font-size: 1.2rem;
+            letter-spacing: 0.1em;
+            user-select: all;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-bright);
+            color: var(--text-bright);
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 1rem;
+            letter-spacing: 0.05em;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 1px var(--accent-green);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--accent-green);
+            color: var(--bg-dark);
+            border: none;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .btn:hover {
+            background: #00dd77;
+            box-shadow: 0 0 10px var(--accent-green);
+        }
+
+        .btn:disabled {
+            background: var(--text-dim);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        #message {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border: 1px solid;
+            display: none;
+        }
+
+        .success {
+            border-color: var(--accent-green);
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--accent-green);
+        }
+
+        .error {
+            border-color: var(--accent-red);
+            background: rgba(255, 107, 107, 0.1);
+            color: var(--accent-red);
+        }
+
+        .activated-info {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid var(--accent-green);
+            padding: 1rem;
+            margin-bottom: 2rem;
+            color: var(--accent-green);
+        }
+
+        .activated-info h3 {
+            margin-bottom: 1rem;
+        }
+
+        .activated-info .detail {
+            margin: 0.5rem 0;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="license-container">
+        <div class="license-header">
+            <h1>⚠ LICENSE REQUIRED ⚠</h1>
+            <p style="color: var(--text-dim);">P25 Hotspot Software - radxrf.com</p>
+        </div>
+
+        {% if license and license.activated %}
+        <div class="activated-info">
+            <h3>✓ License Activated</h3>
+            <div class="detail">Activated: {{ license.activated_at }}</div>
+            <div class="detail">MAC: {{ license.mac_address }}</div>
+            <div class="detail">License Key: {{ license.license_key[:16] }}...</div>
+        </div>
+
+        <a href="/" class="btn">Go to Dashboard</a>
+
+        {% else %}
+
+        <div class="warning-box">
+            <strong>⚠ IMPORTANT:</strong> This software requires a valid license key.
+            No services will function until a license is activated.
+        </div>
+
+        <div class="info-box">
+            <strong>To obtain a license key:</strong><br>
+            1. Contact your system administrator<br>
+            2. Provide your MAC address (shown below)<br>
+            3. Administrator will generate a license key for you<br>
+            4. Enter the license key below to activate
+        </div>
+
+        <div class="mac-display">
+            <div class="mac-label">Your MAC Address (provide this to admin):</div>
+            <div class="mac-value">{{ mac_address }}</div>
+        </div>
+
+        <form id="activationForm" onsubmit="activateLicense(event)">
+            <div class="form-group">
+                <label for="licenseKey">License Key:</label>
+                <input
+                    type="text"
+                    id="licenseKey"
+                    placeholder="Enter 64-character license key"
+                    maxlength="64"
+                    pattern="[0-9A-Fa-f]{64}"
+                    required
+                    style="text-transform: uppercase"
+                >
+                <small style="color: var(--text-dim); font-size: 0.8rem;">
+                    64-character hexadecimal key (letters A-F and numbers 0-9 only)
+                </small>
+            </div>
+
+            <button type="submit" class="btn" id="activateBtn">
+                Activate License
+            </button>
+        </form>
+
+        <div id="message"></div>
+
+        {% endif %}
+    </div>
+
+    <script>
+        async function activateLicense(event) {
+            event.preventDefault();
+
+            const licenseKey = document.getElementById('licenseKey').value.trim().toUpperCase();
+            const btn = document.getElementById('activateBtn');
+            const message = document.getElementById('message');
+
+            // Validate format
+            if (!/^[0-9A-F]{64}$/.test(licenseKey)) {
+                showMessage('Invalid license key format. Must be 64 hexadecimal characters.', 'error');
+                return;
+            }
+
+            // Disable button and show loading
+            btn.disabled = true;
+            btn.textContent = 'Activating...';
+            message.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/license/activate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        license_key: licenseKey
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('✓ ' + data.message + ' Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+                } else {
+                    showMessage('✗ ' + data.error, 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Activate License';
+                }
+            } catch (error) {
+                showMessage('✗ Connection error: ' + error.message, 'error');
+                btn.disabled = false;
+                btn.textContent = 'Activate License';
+            }
+        }
+
+        function showMessage(text, type) {
+            const message = document.getElementById('message');
+            message.textContent = text;
+            message.className = type;
+            message.style.display = 'block';
+        }
+
+        // Auto-format license key input (convert to uppercase)
+        document.getElementById('licenseKey').addEventListener('input', function(e) {
+            this.value = this.value.toUpperCase().replace(/[^0-9A-F]/g, '');
+        });
+    </script>
+</body>
+</html>

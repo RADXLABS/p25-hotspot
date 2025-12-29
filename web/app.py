@@ -10,6 +10,7 @@ import subprocess
 import os
 import re
 from datetime import datetime
+from license import is_licensed, activate_license, get_mac_address, load_license
 
 app = Flask(__name__)
 
@@ -102,7 +103,12 @@ def start_service():
 
 @app.route('/')
 def index():
-    """Main dashboard."""
+    """Main dashboard - or license activation if not licensed."""
+    # Check if licensed
+    if not is_licensed():
+        # Redirect to license activation
+        return redirect(url_for('license_page'))
+
     config = load_config()
     status = get_service_status()
 
@@ -110,15 +116,37 @@ def index():
                          config=config,
                          status=status)
 
+@app.route('/license')
+def license_page():
+    """License activation page."""
+    try:
+        mac_address = get_mac_address()
+    except Exception as e:
+        mac_address = f"Error: {str(e)}"
+
+    license_data = load_license()
+
+    return render_template('license.html',
+                         mac_address=mac_address,
+                         license=license_data)
+
 @app.route('/config')
 def config_page():
     """Configuration page."""
+    # Require license
+    if not is_licensed():
+        return redirect(url_for('license_page'))
+
     config = load_config()
     return render_template('config.html', config=config)
 
 @app.route('/logs')
 def logs_page():
     """Logs page."""
+    # Require license
+    if not is_licensed():
+        return redirect(url_for('license_page'))
+
     logs = get_service_logs(100)
     return render_template('logs.html', logs=logs)
 
@@ -179,6 +207,47 @@ def api_service_action(action):
         return jsonify({'success': False, 'message': 'Invalid action'}), 400
 
     return jsonify({'success': success, 'message': message})
+
+@app.route('/api/license/activate', methods=['POST'])
+def api_activate_license():
+    """API endpoint for license activation."""
+    data = request.json
+
+    if not data or 'license_key' not in data:
+        return jsonify({'success': False, 'error': 'Missing license key'}), 400
+
+    license_key = data['license_key']
+
+    # Activate license
+    success, message = activate_license(license_key)
+
+    if success:
+        # Start hotspot and license validator services
+        try:
+            subprocess.run(['systemctl', 'start', SERVICE_NAME], check=True)
+            subprocess.run(['systemctl', 'start', 'p25-license-validator'], check=True)
+        except Exception as e:
+            pass  # Services will start eventually
+
+        return jsonify({'success': True, 'message': message})
+    else:
+        return jsonify({'success': False, 'error': message}), 400
+
+@app.route('/api/license/status', methods=['GET'])
+def api_license_status():
+    """API endpoint for license status."""
+    try:
+        mac_address = get_mac_address()
+    except Exception as e:
+        mac_address = None
+
+    license_data = load_license()
+
+    return jsonify({
+        'licensed': is_licensed(),
+        'mac_address': mac_address,
+        'license': license_data
+    })
 
 if __name__ == '__main__':
     # Run on all interfaces, port 8080
