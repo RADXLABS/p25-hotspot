@@ -110,17 +110,21 @@ def get_reflector_address():
     Get reflector address from config file.
 
     Returns:
-        str: Reflector URL (http://IP:PORT)
+        str: Reflector URL (https://hostname or http://IP:PORT)
     """
     try:
         with open(CONFIG_FILE, 'r') as f:
             config = yaml.safe_load(f)
+            # Check if there's a web_url configured (for HTTPS domains)
+            if 'reflector' in config and 'web_url' in config['reflector']:
+                return config['reflector']['web_url']
+            # Otherwise use IP:port format
             address = config['reflector']['address']
             port = config['reflector'].get('port', 41000)
             return f"http://{address}:5000"  # Web interface port
     except Exception:
-        # Default fallback
-        return "http://199.201.221.8:5000"
+        # Default fallback to HTTPS domain
+        return "https://trunking.radxrf.com"
 
 
 def activate_license(license_key):
