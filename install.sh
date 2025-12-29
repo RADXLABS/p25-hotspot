@@ -87,8 +87,8 @@ apt install -y \
     git \
     libyaml-cpp-dev \
     python3 \
-    python3-pip \
-    python3-venv
+    python3-flask \
+    python3-yaml
 
 print_success "Dependencies installed"
 
@@ -154,7 +154,7 @@ fi
 print_info "Installing web interface..."
 cd "$INSTALL_DIR/web"
 
-pip3 install -r requirements.txt
+# Python dependencies (Flask, PyYAML) already installed via apt
 
 # Install web service
 cp p25-hotspot-web.service /etc/systemd/system/
