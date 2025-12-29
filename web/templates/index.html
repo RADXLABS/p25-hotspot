@@ -65,9 +65,16 @@
                 <td>{{ config.reflector.radio_id }} ({{ config.reflector.callsign }})</td>
             </tr>
             <tr>
-                <td><strong>Modem Port</strong></td>
-                <td>{{ config.modem.port }}</td>
+                <td><strong>Modem Status</strong></td>
+                <td>
+                    {% if config.modem.enabled %}
+                    <span style="color: var(--accent-green);">✓ Enabled</span> - {{ config.modem.port }}
+                    {% else %}
+                    <span style="color: var(--accent-amber);">⚠ Disabled (Network-Only Mode)</span>
+                    {% endif %}
+                </td>
             </tr>
+            {% if config.modem.enabled %}
             <tr>
                 <td><strong>RX Frequency</strong></td>
                 <td>{{ "%.6f"|format(config.modem.rx_frequency / 1000000.0) }} MHz</td>
@@ -76,6 +83,7 @@
                 <td><strong>TX Frequency</strong></td>
                 <td>{{ "%.6f"|format(config.modem.tx_frequency / 1000000.0) }} MHz</td>
             </tr>
+            {% endif %}
             <tr>
                 <td><strong>NAC</strong></td>
                 <td>0x{{ "%X"|format(config.p25.nac) }}</td>

@@ -23,6 +23,7 @@ struct ModemConfig {
     int rf_level;
     int rx_dc_offset;
     int tx_dc_offset;
+    bool enabled;
 };
 
 struct P25Config {

@@ -11,6 +11,7 @@ reflector:
 
 # MMDVM modem settings
 modem:
+  enabled: true                    # Set to false for network-only testing (no modem needed)
   port: "/dev/ttyAMA0"             # Serial port (ttyAMA0 on RPi, ttyUSB0 for USB)
   baud: 115200                     # Baud rate (115200 standard for MMDVM)
   rx_frequency: 449000000          # RX frequency in Hz

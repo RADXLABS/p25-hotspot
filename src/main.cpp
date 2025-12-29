@@ -68,33 +68,41 @@ int main(int argc, char* argv[]) {
     signal(SIGTERM, signalHandler);
 
     // Create components
-    auto modem = std::make_shared<ModemSerial>(
-        config.getModem(),
-        config.getP25().nac
-    );
+    std::shared_ptr<ModemSerial> modem;
+    std::shared_ptr<TrunkingController> controller;
 
     auto network = std::make_shared<NetworkClient>(
         config.getReflector()
     );
 
-    auto controller = std::make_shared<TrunkingController>(
-        config.getP25(),
-        modem,
-        network
-    );
+    // Initialize modem if enabled
+    if (config.getModem().enabled) {
+        LOG_INFO("Initializing MMDVM modem...");
+        modem = std::make_shared<ModemSerial>(
+            config.getModem(),
+            config.getP25().nac
+        );
 
-    // Start modem
-    LOG_INFO("Initializing MMDVM modem...");
-    if (!modem->open()) {
-        LOG_ERROR("Failed to open modem - exiting");
-        return 1;
+        if (!modem->open()) {
+            LOG_ERROR("Failed to open modem - exiting");
+            return 1;
+        }
+
+        controller = std::make_shared<TrunkingController>(
+            config.getP25(),
+            modem,
+            network
+        );
+    } else {
+        LOG_WARN("Modem disabled - running in network-only mode");
+        LOG_WARN("This is for testing purposes only!");
     }
 
     // Start network
     LOG_INFO("Connecting to reflector...");
     if (!network->start()) {
         LOG_ERROR("Failed to connect to reflector - exiting");
-        modem->close();
+        if (modem) modem->close();
         return 1;
     }
 
@@ -108,22 +116,28 @@ int main(int argc, char* argv[]) {
     if (!network->isAuthenticated()) {
         LOG_ERROR("Authentication timeout - exiting");
         network->stop();
-        modem->close();
+        if (modem) modem->close();
         return 1;
     }
 
-    // Start trunking controller
-    LOG_INFO("Starting trunking controller...");
-    controller->start();
+    // Start trunking controller if modem enabled
+    if (controller) {
+        LOG_INFO("Starting trunking controller...");
+        controller->start();
+    }
 
     LOG_INFO("============================================================");
     LOG_INFO("✓ P25 Hotspot Running");
     LOG_INFO("============================================================");
     LOG_INFO("Reflector: " + config.getReflector().address + ":" + std::to_string(config.getReflector().port));
     LOG_INFO("Radio ID: " + std::to_string(config.getReflector().radio_id) + " (" + config.getReflector().callsign + ")");
-    LOG_INFO("Modem: " + config.getModem().port);
-    LOG_INFO("RX Freq: " + std::to_string(config.getModem().rx_frequency / 1000000.0) + " MHz");
-    LOG_INFO("TX Freq: " + std::to_string(config.getModem().tx_frequency / 1000000.0) + " MHz");
+    if (config.getModem().enabled) {
+        LOG_INFO("Modem: " + config.getModem().port);
+        LOG_INFO("RX Freq: " + std::to_string(config.getModem().rx_frequency / 1000000.0) + " MHz");
+        LOG_INFO("TX Freq: " + std::to_string(config.getModem().tx_frequency / 1000000.0) + " MHz");
+    } else {
+        LOG_INFO("Modem: DISABLED (network-only mode)");
+    }
     LOG_INFO("NAC: 0x" + std::to_string(config.getP25().nac));
     LOG_INFO("Trunking: " + std::string(config.getP25().trunking ? "Enabled" : "Disabled"));
     LOG_INFO("============================================================");
@@ -135,7 +149,7 @@ int main(int argc, char* argv[]) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
         // Check modem status
-        if (!modem->isOpen()) {
+        if (modem && !modem->isOpen()) {
             LOG_ERROR("Modem connection lost - exiting");
             break;
         }
@@ -153,9 +167,9 @@ int main(int argc, char* argv[]) {
     LOG_INFO("Shutting down...");
     LOG_INFO("============================================================");
 
-    controller->stop();
+    if (controller) controller->stop();
     network->stop();
-    modem->close();
+    if (modem) modem->close();
 
     LOG_INFO("✓ P25 Hotspot stopped cleanly");
     LOG_INFO("73!");

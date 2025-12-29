@@ -15,6 +15,7 @@ Config::Config() {
     m_modem.rf_level = 100;
     m_modem.rx_dc_offset = 0;
     m_modem.tx_dc_offset = 0;
+    m_modem.enabled = true;
 
     m_p25.nac = 0x293;
     m_p25.enabled = true;
@@ -54,6 +55,7 @@ bool Config::load(const std::string& filename) {
             if (modem["rf_level"]) m_modem.rf_level = modem["rf_level"].as<int>();
             if (modem["rx_dc_offset"]) m_modem.rx_dc_offset = modem["rx_dc_offset"].as<int>();
             if (modem["tx_dc_offset"]) m_modem.tx_dc_offset = modem["tx_dc_offset"].as<int>();
+            if (modem["enabled"]) m_modem.enabled = modem["enabled"].as<bool>();
         }
 
         // P25 settings

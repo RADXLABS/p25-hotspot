@@ -51,6 +51,16 @@
         <h3>Modem Settings</h3>
 
         <div class="form-group">
+            <label>
+                <input type="checkbox" id="modem_enabled" {% if config.modem.enabled %}checked{% endif %}>
+                Modem Enabled
+            </label>
+            <small style="color: var(--text-dim); display: block; margin-top: 0.5rem;">
+                Disable for network-only testing (no modem hardware required)
+            </small>
+        </div>
+
+        <div class="form-group">
             <label for="modem_port">Serial Port</label>
             <input type="text" id="modem_port" value="{{ config.modem.port }}" required>
             <small style="color: var(--text-dim);">Common: /dev/ttyAMA0 (GPIO), /dev/ttyUSB0 (USB)</small>
@@ -164,6 +174,7 @@ function saveConfig() {
             keepalive_interval: parseInt(document.getElementById('keepalive_interval').value)
         },
         modem: {
+            enabled: document.getElementById('modem_enabled').checked,
             port: document.getElementById('modem_port').value,
             baud: parseInt(document.getElementById('baud').value),
             rx_frequency: Math.round(parseFloat(document.getElementById('rx_frequency').value) * 1000000),

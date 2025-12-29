@@ -152,12 +152,11 @@ fi
 
 # Install web interface
 print_info "Installing web interface..."
-cd "$INSTALL_DIR/web"
 
 # Python dependencies (Flask, PyYAML) already installed via apt
 
 # Install web service
-cp p25-hotspot-web.service /etc/systemd/system/
+cp "$INSTALL_DIR/web/p25-hotspot-web.service" /etc/systemd/system/
 systemctl daemon-reload
 
 print_success "Web interface installed"
