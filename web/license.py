@@ -122,7 +122,7 @@ def get_reflector_address():
         pass
 
     # Always use the API subdomain for licensing (no Cloudflare Access)
-    return "https://api.radxrf.com"
+    return "https://api.radxrf.com"  # No trailing slash!
 
 
 def activate_license(license_key):

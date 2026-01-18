@@ -95,12 +95,13 @@ bool ModemSerial::open() {
         return false;
     }
 
-    // Set frequencies
-    if (!setFrequencies()) {
-        LOG_ERROR("Failed to set frequencies");
-        close();
-        return false;
-    }
+    // Set frequencies - DISABLED FOR TESTING
+    // if (!setFrequencies()) {
+    //     LOG_ERROR("Failed to set frequencies");
+    //     close();
+    //     return false;
+    // }
+    LOG_WARN("Frequency setting bypassed - modem will use default frequencies");
 
     // Set to P25 mode
     if (!setMode(MODE_P25)) {
