@@ -103,12 +103,13 @@ bool ModemSerial::open() {
     // }
     LOG_WARN("Frequency setting bypassed - modem will use default frequencies");
 
-    // Set to P25 mode
-    if (!setMode(MODE_P25)) {
-        LOG_ERROR("Failed to set P25 mode");
-        close();
-        return false;
-    }
+    // Set to P25 mode - BYPASSED, firmware doesn't support it
+    // if (!setMode(MODE_P25)) {
+    //     LOG_ERROR("Failed to set P25 mode");
+    //     close();
+    //     return false;
+    // }
+    LOG_WARN("P25 mode bypassed - modem will stay in idle mode");
 
     LOG_INFO("Modem initialized successfully");
     return true;
@@ -239,10 +240,10 @@ bool ModemSerial::configure() {
     config.push_back(0x00);  // YSF invert
     config.push_back(0x00);  // Debug
 
-    // Mode enables (only P25)
-    config.push_back(0x00);  // DMR disabled
+    // Mode enables (enable DMR instead of P25 for testing)
+    config.push_back(0x01);  // DMR enabled (firmware supports this)
     config.push_back(0x00);  // YSF disabled
-    config.push_back(0x01);  // P25 enabled
+    config.push_back(0x00);  // P25 disabled (firmware rejects this)
     config.push_back(0x00);  // NXDN disabled
 
     // TX/RX levels
