@@ -322,6 +322,13 @@ void ModemSerial::readThread() {
 
                 uint8_t length = m_rxBuffer[1];
 
+                // Validate length to prevent crashes
+                if (length < 3 || length > 250) {
+                    LOG_WARN("Invalid frame length: " + std::to_string(length) + ", discarding");
+                    m_rxBuffer.erase(m_rxBuffer.begin());
+                    continue;
+                }
+
                 if (m_rxBuffer.size() < length) {
                     break;  // Wait for more data
                 }
